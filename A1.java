@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class A1 {
 
-    public static void p1() throws IOException {
+    static void p1() throws IOException {
         final List<Integer> c = getIntegers();
         int f = 0;
         for (int ch : c) {
@@ -17,7 +17,7 @@ public class A1 {
         System.out.println(f);
     }
 
-    public static void p2() throws IOException {
+    static void p2() throws IOException {
         final List<Integer> c = getIntegers();
         int f = 0;
         final Set<Integer> hits = new HashSet<>();
