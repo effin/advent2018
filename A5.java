@@ -1,92 +1,56 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
 
-public class A4 {
+public class A5 {
 
-    static class F {
-        final String start;
-        final int n;
-        final int[] sleepMinutes = new int[60];
-        int totalSleep = 0;
-        int mostSleptMinute = -1;
+    static int diff = Math.abs('A' - 'a');
+    static String line;
 
-        F(String start, int n) {
-            this.start = start;
-            this.n = n;
-        }
-
-        void addSleep(String fallAsleep, String wakeUp) {
-            int start = Integer.parseInt(fallAsleep.split(" ")[1].substring(3, 5));
-            int end = Integer.parseInt(wakeUp.split(" ")[1].substring(3, 5));
-            for (int i = start; i < end; i++) {
-                ++sleepMinutes[i];
+    static boolean reduce(int offset) {
+        StringBuffer newLine = new StringBuffer();
+        if (offset > 0 && offset <= line.length())
+            newLine.append(line.substring(0, offset));
+        char[] c = line.toCharArray();
+        for (int i = 1 + offset; i < c.length; i = i + 2) {
+            if (Math.abs(c[i - 1] - c[i]) == diff) {
+                continue;
             }
-            totalSleep += end - start;
-            int maxSleptMinutes = sleepMinutes[0];
-            for (int i = 1; i < 60; i++) {
-                if (sleepMinutes[i] > maxSleptMinutes) {
-                    maxSleptMinutes = sleepMinutes[i];
-                    mostSleptMinute = i;
-                }
-            }
+            newLine.append(c[i - 1]);
+            newLine.append(c[i]);
         }
-
-        @Override
-        public String toString() {
-            return "F{" +
-                    "start='" + start + '\'' +
-                    ", n=" + n +
-                    ", sleepMinutes=" + sleepMinutes +
-                    ", totalSleep=" + totalSleep +
-                    ", mostSleptMinute=" + mostSleptMinute +
-                    '}';
+        if ((line.length() - offset) % 2 > 0) {
+            newLine.append(c[c.length - 1]);
         }
-
-        static F parse(String line) {
-            if (line.contains("Guard")) {
-                return new F(line.substring(1, 18), Integer.parseInt(line.split(" ")[3].substring(1)));
-            }
-            return null;
-        }
+        boolean result = newLine.length() < line.length();
+        line = newLine.toString();
+        return result;
     }
 
-    static List<F> getSquares() throws IOException {
-        final List<String> c = new LinkedList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("input4.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                c.add(line);
-            }
-        }
-        Collections.sort(c);
-        final Map<Integer, F> ff = new HashMap<>();
-        int currentGuard = -1;
-        for (int i = 0; i < c.size(); ++i) {
-            String line = c.get(i);
-            F f = F.parse(line);
-            if (f != null) {
-                System.out.println(line);
-                if (!ff.containsKey(f.n)) {
-                    ff.put(f.n, f);
-                }
-                currentGuard = f.n;
-            } else {
-                System.out.println(line + " " + c.get(i + 1));
-                ff.get(currentGuard).addSleep(line, c.get(++i));
-            }
-        }
-        return new LinkedList<>(ff.values());
+    static void p1() {
+        int changes = 0;
+        do {
+            changes = 0;
+            changes += reduce(0) ? 1 : 0;
+            changes += reduce(1) ? 1 : 0;
+        } while (changes > 0);
     }
 
     public static void main(String[] args) throws IOException {
-        final List<F> input = getSquares();
-        F f = input.stream().sorted((f1, f2) -> Integer.compare(f2.totalSleep, f1.totalSleep)).findFirst().get();
-        System.out.println(f);
-        System.out.println(f.n * f.mostSleptMinute);
-        F p2 = input.stream().sorted((f1, f2) -> Integer.compare(f2.mostSleptMinute < 0? 0 :f2.sleepMinutes[f2.mostSleptMinute],f1.mostSleptMinute <0? 0 : f1.sleepMinutes[f1.mostSleptMinute])).findFirst().get();
-        System.out.println(p2);
-        System.out.println(p2.n * p2.mostSleptMinute);
+        BufferedReader br = new BufferedReader(new FileReader("input5.txt"));
+        final String original = br.readLine();
+        line = original;
+        p1();
+        System.out.println(line.length());
+
+        int best = line.length();
+        for (char c = 'a'; c <= 'z'; ++c) {
+            line = original.replaceAll(String.valueOf(c), "").replaceAll(String.valueOf((char) (c - diff)), "");
+            p1();
+            if (line.length() < best) {
+                best = line.length();
+            }
+        }
+        System.out.println(best);
     }
 }

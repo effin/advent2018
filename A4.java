@@ -1,65 +1,76 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static java.lang.Integer.parseInt;
-import static java.util.stream.Collectors.toSet;
+public class A4 {
 
-public class A3 {
+    static class G {
+        final String start;
+        final int n;
+        final int[] sleepMinutes = new int[60];
+        int totalSleep = 0;
+        int mostSleptMinute = -1;
 
-    static class F {
-        public final int x, y, w, h;
-        public final String id;
-
-        F(int x, int y, int w, int h, String id) {
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
-            this.id = id;
+        G(String start, int n) {
+            this.start = start;
+            this.n = n;
         }
 
-        static F parse(String line) {
-            final String[] parts = line.split(" ");
-            final String[] xy = parts[2].split(",");
-            final String[] wh = parts[3].split("x");
-            return new F(parseInt(xy[0]), parseInt(xy[1].substring(0, xy[1].length() - 1)), parseInt(wh[0]), parseInt(wh[1]), parts[0]);
-        }
-    }
-
-    static List<F> getSquares() throws IOException {
-        final List<F> c = new LinkedList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("input3.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                c.add(F.parse(line));
+        void addSleep(String fallAsleep, String wakeUp) {
+            int start = Integer.parseInt(fallAsleep.split(" ")[1].substring(3, 5));
+            int end = Integer.parseInt(wakeUp.split(" ")[1].substring(3, 5));
+            for (int i = start; i < end; i++) {
+                ++sleepMinutes[i];
             }
-        }
-        return c;
-    }
-
-    public static void main(String[] args) throws IOException {
-        final List<F> input = getSquares();
-        final int maxX = input.stream().mapToInt(f -> f.x + f.w).max().getAsInt();
-        final int maxY = input.stream().mapToInt(f -> f.y + f.h).max().getAsInt();
-        int count = 0;
-        final Set<F> overlapping = new HashSet<>();
-        for (int x = 0; x <= maxX; ++x) {
-            final int xx = x;
-            for (int y = 0; y <= maxY; ++y) {
-                final int yy = y;
-                final Set<F> fs = input.stream().filter(f -> xx >= f.x && xx < f.x + f.w && yy >= f.y && yy < f.y + f.h).collect(toSet());
-                if (fs.size() > 1) {
-                    ++count;
-                    overlapping.addAll(fs);
+            totalSleep += end - start;
+            int maxSleptMinutes = sleepMinutes[0];
+            for (int i = 1; i < 60; i++) {
+                if (sleepMinutes[i] > maxSleptMinutes) {
+                    maxSleptMinutes = sleepMinutes[i];
+                    mostSleptMinute = i;
                 }
             }
         }
-        System.out.println(count);
-        System.out.println(input.stream().filter(f -> !overlapping.contains(f)).findFirst().get().id);
+
+        static G parse(String line) {
+            if (line.contains("Guard")) {
+                return new G(line.substring(1, 18), Integer.parseInt(line.split(" ")[3].substring(1)));
+            }
+            return null;
+        }
+    }
+
+    static List<G> getGuards() throws IOException {
+        final List<String> c = new LinkedList<>();
+        BufferedReader br = new BufferedReader(new FileReader("input4.txt"));
+        String line;
+        while ((line = br.readLine()) != null) {
+            c.add(line);
+        }
+        Collections.sort(c);
+        final Map<Integer, G> ff = new HashMap<>();
+        int currentGuard = -1;
+        for (int i = 0; i < c.size(); ++i) {
+            line = c.get(i);
+            G f = G.parse(line);
+            if (f != null) {
+                if (!ff.containsKey(f.n)) {
+                    ff.put(f.n, f);
+                }
+                currentGuard = f.n;
+            } else {
+                ff.get(currentGuard).addSleep(line, c.get(++i));
+            }
+        }
+        return new LinkedList<>(ff.values());
+    }
+
+    public static void main(String[] args) throws IOException {
+        final List<G> input = getGuards();
+        G mostSleepingGuard = input.stream().sorted((f1, f2) -> Integer.compare(f2.totalSleep, f1.totalSleep)).findFirst().get();
+        System.out.println(mostSleepingGuard.n * mostSleepingGuard.mostSleptMinute);
+        G p2 = input.stream().sorted((f1, f2) -> Integer.compare(f2.mostSleptMinute < 0 ? 0 : f2.sleepMinutes[f2.mostSleptMinute], f1.mostSleptMinute < 0 ? 0 : f1.sleepMinutes[f1.mostSleptMinute])).findFirst().get();
+        System.out.println(p2.n * p2.mostSleptMinute);
     }
 }

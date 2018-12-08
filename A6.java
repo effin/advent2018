@@ -1,60 +1,88 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.IntStream;
 
-public class A5 {
+public class A6 {
 
-    static int diff = Math.abs('A' - 'a');
-    static String line;
-
-    static boolean reduce(int offset) {
-        StringBuffer newLine = new StringBuffer();
-        if (offset > 0 && offset <= line.length())
-            newLine.append(line.substring(0, offset));
-        char[] c = line.toCharArray();
-        for (int i = 1 + offset; i < c.length; i = i + 2) {
-            if (Math.abs(c[i - 1] - c[i]) == diff) {
-//                System.out.println("remove: " + c[i - 1] + "" + c[i]);
-                continue;
+    static int p1(List<Integer> x, List<Integer> y, int maxX, int maxY) {
+        int[][][] distance = new int[maxX][maxY][2];
+        for (int xx = 0; xx < maxX; xx++) {
+            for (int yy = 0; yy < maxY; yy++) {
+                distance[xx][yy][0] = -1;
             }
-            newLine.append(c[i - 1]);
-            newLine.append(c[i]);
         }
-        if ((line.length() - offset) % 2 > 0) {
-            newLine.append(c[c.length - 1]);
+        for (int i = 0; i < x.size(); i++) {
+            int x0 = x.get(i);
+            int y0 = y.get(i);
+            for (int xx = 0; xx < maxX; xx++) {
+                for (int yy = 0; yy < maxY; yy++) {
+                    int manhattan = Math.abs(xx - x0) + Math.abs(yy - y0);
+                    if (distance[xx][yy][0] < 0 || distance[xx][yy][1] >= manhattan) {
+                        if (distance[xx][yy][1] == manhattan) {
+                            distance[xx][yy][0] = x.size();
+                        } else {
+                            distance[xx][yy][0] = i;
+                            distance[xx][yy][1] = manhattan;
+                        }
+                    }
+                }
+            }
         }
-        boolean result = newLine.length() < line.length();
-        line = newLine.toString();
-//        System.out.println(line);
-        return result;
+        int[] count = new int[x.size() + 1];
+        for (int xx = 0; xx < maxX; xx++) {
+            for (int yy = 0; yy < maxY; yy++) {
+                ++count[distance[xx][yy][0]];
+            }
+        }
+        for (int xx = 0; xx < maxX; xx++) {
+            count[distance[xx][0][0]] = 0;
+            count[distance[xx][maxY - 1][0]] = 0;
+        }
+        for (int yy = 0; yy < maxY; yy++) {
+            count[distance[0][yy][0]] = 0;
+            count[distance[maxX - 1][yy][0]] = 0;
+        }
+        return IntStream.of(count).max().getAsInt();
     }
 
-    static void p1() throws IOException {
-        int changes = 0;
-        do {
-            changes = 0;
-            changes += reduce(0) ? 1 : 0;
-            changes += reduce(1) ? 1 : 0;
-        } while (changes > 0);
+    static int p2(List<Integer> x, List<Integer> y, int maxX, int maxY) {
+        final int limit = 10_000;
+        int count = 0;
+        for (int xx = 0; xx < maxX; xx++) {
+            for (int yy = 0; yy < maxY; yy++) {
+                int distance = 0;
+                for (int i = 0; i < x.size(); i++) {
+                    int x0 = x.get(i);
+                    int y0 = y.get(i);
+                    int manhattan = Math.abs(xx - x0) + Math.abs(yy - y0);
+                    distance += manhattan;
+                }
+                if (distance <= limit) {
+                    ++count;
+                }
+            }
+        }
+        return count;
     }
 
     public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("input5.txt"));
-        final String original = br.readLine();
-        line = original;
-        p1();
-        System.out.println(line.length());
-
-        int best = line.length();
-        for(char c = 'a'; c <= 'z'; ++c) {
-
-            line = original.replaceAll(String.valueOf(c), "").replaceAll(String.valueOf((char) (c - diff)), "");
-            System.out.println(c + " " + (c + diff) + " " + (c - diff) + " " + line);
-            p1();
-            if (line.length() < best) {
-                best = line.length();
-            }
+        BufferedReader br = new BufferedReader(new FileReader("input6.txt"));
+        List<Integer> x = new LinkedList<>();
+        List<Integer> y = new LinkedList<>();
+        String line = br.readLine();
+        while (line != null) {
+            String[] xy = line.split(" ");
+            x.add(Integer.valueOf(xy[0].substring(0, xy[0].length() - 1)));
+            y.add(Integer.valueOf(xy[1]));
+            line = br.readLine();
         }
-        System.out.println(best);
+
+        int maxX = x.stream().mapToInt(Integer::intValue).max().getAsInt() + 1;
+        int maxY = y.stream().mapToInt(Integer::intValue).max().getAsInt() + 1;
+
+        System.out.printf("%d %d", p1(x, y, maxX, maxY), p2(x, y, maxX, maxY));
     }
 }

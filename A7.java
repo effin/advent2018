@@ -1,102 +1,102 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.IntStream;
+import java.util.*;
 
-public class A6 {
+public class A7 {
 
-    static void p2() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("input6.txt"));
-        List<Integer> x = new LinkedList<>();
-        List<Integer> y = new LinkedList<>();
-        String line = br.readLine();
-        while (line != null) {
-            String[] xy = line.split(" ");
-            x.add(Integer.valueOf(xy[0].substring(0, xy[0].length() - 1)));
-            y.add(Integer.valueOf(xy[1]));
-            line = br.readLine();
-        }
+    static List<Character> before = new LinkedList<>();
+    static List<Character> after = new LinkedList<>();
 
-        int maxX = x.stream().mapToInt(Integer::intValue).max().getAsInt() + 1;
-        int maxY = y.stream().mapToInt(Integer::intValue).max().getAsInt() + 1;
-
-        final int limit = 10_000;
-        int count = 0;
-
-        for (int xx = 0; xx < maxX; xx++) {
-            for (int yy = 0; yy < maxY; yy++) {
-                int distance = 0;
-                for (int i = 0; i < x.size(); i++) {
-                    int x0 = x.get(i);
-                    int y0 = y.get(i);
-                    int manhattan = Math.abs(xx - x0) + Math.abs(yy - y0);
-                    distance += manhattan;
-                }
-                if (distance <= limit) {
-                    ++count;
+    static List<Character> findAvailable(boolean[] taken, boolean[] ready) {
+        List<Character> avail = new LinkedList<>();
+        for (int i = 0; i < taken.length; i++) {
+            if (!taken[i] && !ready[i]) {
+                char c = (char) ('A' + i);
+                if (isAvailable(c, ready)) {
+                    avail.add(c);
                 }
             }
         }
-        System.out.println(count);
+        return avail;
     }
 
-    static void p1() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("input6.txt"));
-        List<Integer> x = new LinkedList<>();
-        List<Integer> y = new LinkedList<>();
-        String line = br.readLine();
-        while (line != null) {
-            String[] xy = line.split(" ");
-            x.add(Integer.valueOf(xy[0].substring(0, xy[0].length() - 1)));
-            y.add(Integer.valueOf(xy[1]));
-            line = br.readLine();
-        }
-        int maxX = x.stream().mapToInt(Integer::intValue).max().getAsInt() + 1;
-        int maxY = y.stream().mapToInt(Integer::intValue).max().getAsInt() + 1;
-        int[][][] distance = new int[maxX][maxY][2];
-        for (int xx = 0; xx < maxX; xx++) {
-            for (int yy = 0; yy < maxY; yy++) {
-                distance[xx][yy][0] = -1;
+    static boolean isAvailable(char c, boolean[] taken) {
+        for (int i = 0; i < before.size(); i++) {
+            if (after.get(i).charValue() == c && !taken[before.get(i).charValue() - 'A']) {
+                return false;
             }
         }
-        for (int i = 0; i < x.size(); i++) {
-            int x0 = x.get(i);
-            int y0 = y.get(i);
-            for (int xx = 0; xx < maxX; xx++) {
-                for (int yy = 0; yy < maxY; yy++) {
-                    int manhattan = Math.abs(xx - x0) + Math.abs(yy - y0);
-                    if (distance[xx][yy][0] < 0 || distance[xx][yy][1] >= manhattan) {
-                        if (distance[xx][yy][1] == manhattan) {
-                            distance[xx][yy][0] = x.size();
-                        } else {
-                            distance[xx][yy][0] = i;
-                            distance[xx][yy][1] = manhattan;
-                        }
+        return true;
+    }
+
+    static String p1(List<Character> before, List<Character> after) {
+        final Set<Character> all = new HashSet<>(before);
+        all.addAll(after);
+        final int numChars = new HashSet<>(all).size();
+        boolean[] taken = new boolean[numChars];
+        StringBuffer res = new StringBuffer();
+        while (res.length() < numChars) {
+            List<Character> ava = findAvailable(taken, taken);
+            Collections.sort(ava);
+            res.append(ava.get(0));
+            taken[ava.get(0).charValue() - 'A'] = true;
+        }
+        return res.toString();
+    }
+
+    static int p2(List<Character> before, List<Character> after) {
+        final Set<Character> all = new HashSet<>(before); // fixme move this out
+        all.addAll(after);
+        final int numChars = new HashSet<>(all).size();
+        boolean[] taken = new boolean[numChars];
+        boolean[] ready = new boolean[numChars];
+        int[] worked = new int[numChars];
+        int time = 0;
+        StringBuffer res = new StringBuffer();
+        Character[] workers = new Character[5];
+        while (res.length() < numChars) {
+            for (int i = 0; i < workers.length; i++) {
+                if (workers[i] == null) {
+                    List<Character> ava = findAvailable(taken, ready);
+                    if (!ava.isEmpty()) {
+                        Collections.sort(ava);
+                        taken[ava.get(0).charValue() - 'A'] = true;
+                        workers[i] = ava.get(0);
+                        worked[workers[i] - 'A'] = 0;
+                    }
+                }
+            }
+            ++time;
+            for (int i = 0; i < workers.length; i++) {
+                if (workers[i] != null) {
+                    ++worked[workers[i] - 'A'];
+                    if (worked[workers[i] - 'A'] == timeToFinish(workers[i] - 'A')) {
+                        res.append(workers[i]);
+                        ready[workers[i] - 'A'] = true;
+                        workers[i] = null;
                     }
                 }
             }
         }
-        int[] count = new int[x.size() + 1];
-        for (int xx = 0; xx < maxX; xx++) {
-            for (int yy = 0; yy < maxY; yy++) {
-                ++count[distance[xx][yy][0]];
-            }
-        }
-        for (int xx = 0; xx < maxX; xx++) {
-            count[distance[xx][0][0]] = 0;
-            count[distance[xx][maxY - 1][0]] = 0;
-        }
-        for (int yy = 0; yy < maxY; yy++) {
-            count[distance[0][yy][0]] = 0;
-            count[distance[maxX - 1][yy][0]] = 0;
-        }
-        System.out.println(IntStream.of(count).max().getAsInt());
+        return time;
+    }
+
+    static int timeToFinish(int i) {
+        return i + 61;
     }
 
     public static void main(String[] args) throws IOException {
-        p1();
-        p2();
+
+        BufferedReader br = new BufferedReader(new FileReader("input7.txt"));
+        String line = br.readLine();
+        while (line != null) {
+            String[] xy = line.split(" ");
+            before.add(Character.valueOf(xy[1].toCharArray()[0]));
+            after.add(Character.valueOf(xy[7].toCharArray()[0]));
+            line = br.readLine();
+        }
+
+        System.out.printf("%s %d", p1(before, after), p2(before, after));
     }
 }

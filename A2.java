@@ -7,14 +7,13 @@ import java.util.List;
 
 public class A2 {
 
-    static void p1() throws IOException {
-        final List<String> c = getStrings();
+    static int p1(List<String> c) {
         int two = 0, three = 0;
         for (String ch : c) {
             two += countAny(ch, 2);
             three += countAny(ch, 3);
         }
-        System.out.println(two * three);
+        return two * three;
     }
 
     static int countAny(String ch, final int count) {
@@ -25,16 +24,15 @@ public class A2 {
         return Arrays.stream(counters).filter(i -> i == count).findAny().isPresent() ? 1 : 0;
     }
 
-    static void p2() throws IOException {
-        final List<String> c = getStrings();
+    static String p2(List<String> c) {
         for (String ch1 : c) {
             for (String ch2 : c) {
                 if (differsInOne(ch1, ch2)) {
-                    System.out.println(removeDiffChar(ch1, ch2));
-                    return;
+                    return removeDiffChar(ch1, ch2);
                 }
             }
         }
+        return null;
     }
 
     static String removeDiffChar(String ch1, String ch2) {
@@ -60,19 +58,13 @@ public class A2 {
         return foundDiff;
     }
 
-    static List<String> getStrings() throws IOException {
-        final List<String> c = new LinkedList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("input2.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                c.add(line);
-            }
-        }
-        return c;
-    }
-
     public static void main(String[] args) throws IOException {
-        p1();
-        p2();
+        final List<String> c = new LinkedList<>();
+        BufferedReader br = new BufferedReader(new FileReader("input2.txt"));
+        String line;
+        while ((line = br.readLine()) != null) {
+            c.add(line);
+        }
+        System.out.printf("%d %s", p1(c), p2(c));
     }
 }

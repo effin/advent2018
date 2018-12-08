@@ -31,19 +31,13 @@ public class A3 {
         }
     }
 
-    static List<F> getSquares() throws IOException {
-        final List<F> c = new LinkedList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("input3.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                c.add(F.parse(line));
-            }
-        }
-        return c;
-    }
-
     public static void main(String[] args) throws IOException {
-        final List<F> input = getSquares();
+        final List<F> input = new LinkedList<>();
+        BufferedReader br = new BufferedReader(new FileReader("input3.txt"));
+        String line;
+        while ((line = br.readLine()) != null) {
+            input.add(F.parse(line));
+        }
         final int maxX = input.stream().mapToInt(f -> f.x + f.w).max().getAsInt();
         final int maxY = input.stream().mapToInt(f -> f.y + f.h).max().getAsInt();
         int count = 0;

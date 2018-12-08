@@ -8,17 +8,15 @@ import java.util.Set;
 
 public class A1 {
 
-    static void p1() throws IOException {
-        final List<Integer> c = getIntegers();
+    static int p1(List<Integer> c) throws IOException {
         int f = 0;
         for (int ch : c) {
             f += ch;
         }
-        System.out.println(f);
+        return f;
     }
 
-    static void p2() throws IOException {
-        final List<Integer> c = getIntegers();
+    static int p2(List<Integer> c) {
         int f = 0;
         final Set<Integer> hits = new HashSet<>();
         hits.add(0);
@@ -26,26 +24,20 @@ public class A1 {
             for (int ch : c) {
                 f += ch;
                 if (!hits.add(f)) {
-                    System.out.println(f);
-                    System.exit(0);
+                    return f;
                 }
             }
         }
     }
 
-    private static List<Integer> getIntegers() throws IOException {
-        final List<Integer> c = new LinkedList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("input1.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                c.add(Integer.parseInt(line));
-            }
-        }
-        return c;
-    }
-
     public static void main(String[] args) throws IOException {
-        p1();
-        p2();
+        final List<Integer> c = new LinkedList<>();
+        BufferedReader br = new BufferedReader(new FileReader("input1.txt"));
+        String line;
+        while ((line = br.readLine()) != null) {
+            c.add(Integer.parseInt(line));
+        }
+
+        System.out.printf("%d %d", p1(c), p2(c));
     }
 }
