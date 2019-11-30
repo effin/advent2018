@@ -29,11 +29,6 @@ public class A15 {
     static boolean[][] hasMoved;
 
     public static void main(String[] args) throws IOException {
-//        Scanner scanner = new Scanner(new File("input15_t4.txt"));
-//        Scanner scanner = new Scanner(new File("input15_t3.txt"));
-//        Scanner scanner = new Scanner(new File("input15_t2.txt"));
-//        Scanner scanner = new Scanner(new File("input15_t5.txt"));
-//        Scanner scanner = new Scanner(new File("input15_t1.txt"));
         Scanner scanner = new Scanner(new File("input15.txt"));
 
         final List<String> input = new LinkedList<>();
